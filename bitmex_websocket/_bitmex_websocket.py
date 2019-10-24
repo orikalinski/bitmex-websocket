@@ -18,7 +18,7 @@ class BitMEXWebsocketConnectionError(Exception):
 
 
 class BitMEXWebsocket(EventEmitter, WebSocketApp):
-    def __init__(self, should_auth=False, heartbeat=True, ping_interval=10,
+    def __init__(self, api_key, api_secret, should_auth=False, heartbeat=True, ping_interval=10,
                  ping_timeout=9):
         self.ping_timeout = ping_timeout
         self.ping_interval = ping_interval
@@ -26,6 +26,8 @@ class BitMEXWebsocket(EventEmitter, WebSocketApp):
         self.heartbeat = heartbeat
         self.channels = []
         self.reconnect_count = 0
+        self.api_key = api_key
+        self.api_secret = api_secret
 
         EventEmitter.__init__(self)
 
@@ -118,15 +120,15 @@ class BitMEXWebsocket(EventEmitter, WebSocketApp):
             alog.info("Authenticating with API Key.")
             # To auth to the WS using an API key, we generate a signature
             # of a nonce and the WS API endpoint.
-            alog.debug(settings.BITMEX_API_KEY)
+            alog.debug(self.BITMEX_API_KEY)
             nonce = generate_nonce()
             api_signature = generate_signature(
-                settings.BITMEX_API_SECRET, 'GET', '/realtime', nonce, '')
+                self.BITMEX_API_SECRET, 'GET', '/realtime', nonce, '')
 
             auth = [
                 "api-nonce: " + str(nonce),
                 "api-signature: " + api_signature,
-                "api-key:" + settings.BITMEX_API_KEY
+                "api-key:" + self.BITMEX_API_KEY
             ]
 
         return auth_header
