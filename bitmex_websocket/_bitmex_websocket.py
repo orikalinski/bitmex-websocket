@@ -18,13 +18,13 @@ class BitMEXWebsocketConnectionError(Exception):
 
 
 class BitMEXWebsocket(EventEmitter, WebSocketApp):
-    def __init__(self, api_key, api_secret, should_auth=False, heartbeat=True, ping_interval=10,
+    def __init__(self, api_key, api_secret, channels, callback, should_auth=False, heartbeat=True, ping_interval=10,
                  ping_timeout=9):
         self.ping_timeout = ping_timeout
         self.ping_interval = ping_interval
         self.should_auth = should_auth
         self.heartbeat = heartbeat
-        self.channels = []
+        self.channels = channels
         self.reconnect_count = 0
         self.api_key = api_key
         self.api_secret = api_secret
@@ -43,6 +43,7 @@ class BitMEXWebsocket(EventEmitter, WebSocketApp):
         )
 
         self.on('subscribe', self.on_subscribe)
+        self.on('action', callback)
 
     def gen_url(self):
         base_url = settings.BASE_URL
