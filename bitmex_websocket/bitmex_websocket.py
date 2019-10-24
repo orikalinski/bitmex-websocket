@@ -45,6 +45,10 @@ class BitMEXWebsocket(EventEmitter, WebSocketApp):
         self.on('subscribe', self.on_subscribe)
         self.on('action', callback)
 
+    def subscribe_channels(self):
+        for channel in self.channels:
+            self.subscribe(channel)
+
     def gen_url(self):
         base_url = settings.BASE_URL
         url_parts = list(urlparse(base_url))
@@ -121,21 +125,22 @@ class BitMEXWebsocket(EventEmitter, WebSocketApp):
             alog.info("Authenticating with API Key.")
             # To auth to the WS using an API key, we generate a signature
             # of a nonce and the WS API endpoint.
-            alog.debug(self.BITMEX_API_KEY)
+            alog.debug(self.api_key)
             nonce = generate_nonce()
             api_signature = generate_signature(
-                self.BITMEX_API_SECRET, 'GET', '/realtime', nonce, '')
+                self.api_secret, 'GET', '/realtime', nonce, '')
 
-            auth = [
+            auth_header = [
                 "api-nonce: " + str(nonce),
                 "api-signature: " + api_signature,
-                "api-key:" + self.BITMEX_API_KEY
+                "api-key:" + self.api_key
             ]
 
         return auth_header
 
     def on_open(self):
         alog.debug("Websocket Opened.")
+        self.subscribe_channels()
         self.emit('open')
 
     def on_close(self):
